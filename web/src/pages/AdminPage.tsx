@@ -255,8 +255,8 @@ export default function AdminPage({ onGoPublic }: AdminPageProps) {
           공정성 원칙
         </div>
         <p className="text-slate-400 leading-relaxed">
-          • 투표 기간 중에는 **관리자도 중간 득표수나 타인의 선택을 볼 수 없습니다.**<br />
-          • 개인 링크는 다른 멤버와 섞이지 않도록 **카카오톡 1:1 대화**로 전송하세요.
+          • 투표 기간 중에는 <strong className="text-white font-bold">관리자도 중간 득표수나 타인의 선택을 볼 수 없습니다.</strong><br />
+          • 개인 링크는 다른 멤버와 섞이지 않도록 <strong className="text-white font-bold">카카오톡 1:1 대화</strong>로 전송하세요.
         </p>
       </section>
 
