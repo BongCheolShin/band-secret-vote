@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { MemberBallotData } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { mockMemberData } from '../mockData';
-import { CheckCircle, AlertTriangle, ArrowLeft, Send } from 'lucide-react';
+import { CheckCircle, AlertTriangle, ArrowLeft, Send, Clock } from 'lucide-react';
 import YoutubeIcon from '../components/YoutubeIcon';
 
 interface VotePageProps {
@@ -80,7 +80,18 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
   const serverNow = new Date(election.server_now).getTime();
   const startAt = new Date(election.start_at).getTime();
   const endAt = new Date(election.end_at).getTime();
+  const isBeforeStart = serverNow < startAt;
+  const isAfterEnd = serverNow >= endAt;
   const isVotingPeriod = serverNow >= startAt && serverNow < endAt;
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    } catch {
+      return dateStr;
+    }
+  };
 
   const handleSelectSong = (recommenderId: string, songId: string) => {
     if (!isVotingPeriod) return;
@@ -168,6 +179,32 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
           각 추천자 그룹에서 마음에 드는 곡을 <strong className="text-violet-300 font-bold">1곡씩(총 {totalGroups}곡)</strong> 선택해 주세요.
         </p>
       </header>
+
+      {/* 상태 배너 */}
+      {isBeforeStart ? (
+        <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center space-y-1 shadow-sm">
+          <div className="inline-flex items-center gap-2 text-sky-400 font-bold text-base">
+            <Clock className="w-5 h-5" />
+            ⏳ 투표 시작 전입니다.
+          </div>
+          <p className="text-xs text-slate-300">
+            투표 기간: {formatDate(election.start_at)} ~ {formatDate(election.end_at)} (KST)
+          </p>
+          <p className="text-[11px] text-slate-400 pt-0.5">
+            투표 시작 전에는 18곡 후보를 미리 들어보실 수 있으며, 시작 일시부터 투표 제출이 가능합니다.
+          </p>
+        </section>
+      ) : isAfterEnd ? (
+        <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center space-y-1 shadow-sm">
+          <div className="inline-flex items-center gap-2 text-amber-400 font-bold text-base">
+            <Clock className="w-5 h-5" />
+            ⏰ 투표가 마감되었습니다.
+          </div>
+          <p className="text-xs text-slate-300">
+            투표 결과는 마감 및 전원 참여 완료 후 일반 공개 페이지에서 확인하실 수 있습니다.
+          </p>
+        </section>
+      ) : null}
 
       {/* 필수 고지 안내문 (FR-017) */}
       <section className="bg-amber-950/30 border border-amber-600/40 rounded-xl p-3.5 space-y-1.5 text-xs">
@@ -295,6 +332,10 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
         >
           {isSubmitting ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : isBeforeStart ? (
+            '⏳ 투표 시작 전입니다'
+          ) : isAfterEnd ? (
+            '⏰ 투표가 마감되었습니다'
           ) : !isVotingPeriod ? (
             '현재는 투표 기간이 아닙니다'
           ) : isAllSelected ? (
