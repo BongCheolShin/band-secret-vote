@@ -206,7 +206,7 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
         </div>
         <p className="text-slate-300 leading-relaxed">
           • 투표 기간 중에는 <strong className="text-amber-200 font-bold">본인의 선택만 확인 가능</strong>하며 타인의 선택이나 중간 득표는 비공개입니다.<br />
-          • 투표 마감 및 6명 전원 참여 완료 시, <strong className="text-amber-200 font-bold">일반 공개 페이지에 멤버 6명의 실명과 최종 선택한 6곡 내역이 모두 투명하게 공개</strong>됩니다.<br />
+          • 투표 마감 및 <strong className="text-amber-200 font-bold">{totalGroups}명 전원 참여 완료 시</strong>, <strong className="text-amber-200 font-bold">일반 공개 페이지에 멤버 전원의 실명과 최종 선택한 {totalGroups}곡 내역이 모두 투명하게 공개</strong>됩니다.<br />
           • 마감 전까지는 본 링크로 재접속하여 <strong className="text-amber-200 font-bold">언제든 무제한으로 수정</strong>할 수 있습니다.
         </p>
       </section>

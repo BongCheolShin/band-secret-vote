@@ -297,7 +297,7 @@ export default function AdminPage({ onGoPublic }: AdminPageProps) {
             className="w-full py-2.5 px-4 bg-violet-600/30 hover:bg-violet-600/40 border border-violet-500/50 rounded-xl text-xs font-bold text-violet-200 flex items-center justify-center gap-2 transition-colors"
           >
             {allCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            {allCopied ? '전체 링크가 복사되었습니다!' : '카톡 전달용 6명 전체 링크 한 번에 복사'}
+            {allCopied ? '전체 링크가 복사되었습니다!' : `카톡 전달용 ${membersData.length}명 전체 링크 한 번에 복사`}
           </button>
 
           <div className="space-y-2.5">

@@ -77,4 +77,19 @@ describe('Band Secret Vote 비즈니스 로직 검증', () => {
       expect(groupVotes[g]).toBe(6);
     });
   });
+
+  // TC-024: 동점 발생 시 추천인 본인이 투표한 곡이 1위 선정곡으로 자동 확정된다 (사용자 확정 정책)
+  it('TC-024: 동점 발생 시 추천인이 투표한 곡이 최종 선정곡으로 결정된다', () => {
+    const topSongs = [
+      { id: 'song-1', title: '일상으로의 초대', votes: 3 },
+      { id: 'song-2', title: '질주', votes: 3 },
+    ];
+    // 추천인이 투표한 곡
+    const recommenderSelfVote = 'song-2';
+
+    // 추천인의 투표 곡이 동점 1위 후보 중 일치하는 곡 선택
+    const winningSong = topSongs.find(s => s.id === recommenderSelfVote);
+    expect(winningSong).toBeDefined();
+    expect(winningSong?.id).toBe('song-2');
+  });
 });

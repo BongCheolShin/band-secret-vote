@@ -74,12 +74,24 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
   const voteMap = new Map<string, number>();
   results?.forEach(r => voteMap.set(r.song_id, r.vote_count));
 
-  // 결과 공개 시: 추천자 그룹별 1위(단독 및 공동 동점 포함) 목록 계산
+  // 추천인별 본인 추천 그룹 투표곡 맵: recommender_id -> song_id
+  const recommenderSelfVoteMap = new Map<string, string>();
+  if (member_choices) {
+    member_choices.forEach(mc => {
+      const selfChoice = mc.choices?.find(c => c.recommender_id === mc.member_id);
+      if (selfChoice) {
+        recommenderSelfVoteMap.set(mc.member_id, selfChoice.song_id);
+      }
+    });
+  }
+
+  // 결과 공개 시: 추천자 그룹별 1위(단독 및 추천인 선택으로 동점 확정 포함) 목록 계산
   const winningGroups: Array<{
     recommenderId: string;
     recommenderName: string;
     recommenderPart: string;
     isTie: boolean;
+    isTieBrokenByRecommender?: boolean;
     votes: number;
     songs: Array<{
       id: string;
@@ -99,14 +111,46 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
 
       if (maxVotes > 0) {
         const topSongs = rec.songs.filter(s => (voteMap.get(s.id) || 0) === maxVotes);
-        winningGroups.push({
-          recommenderId: rec.id,
-          recommenderName: rec.name,
-          recommenderPart: rec.part,
-          isTie: topSongs.length > 1,
-          votes: maxVotes,
-          songs: topSongs,
-        });
+
+        if (topSongs.length > 1) {
+          // 동점 발생 시 정책: 추천인 본인이 투표한 곡이 1위 후보 중에 있으면 우선 선정
+          const selfVotedSongId = recommenderSelfVoteMap.get(rec.id);
+          const recommenderChoiceSong = topSongs.find(s => s.id === selfVotedSongId);
+
+          if (recommenderChoiceSong) {
+            winningGroups.push({
+              recommenderId: rec.id,
+              recommenderName: rec.name,
+              recommenderPart: rec.part,
+              isTie: false,
+              isTieBrokenByRecommender: true,
+              votes: maxVotes,
+              songs: [recommenderChoiceSong],
+            });
+          } else {
+            // 추천인의 선택이 다른 곡이었을 때만 협의/결선 필요
+            winningGroups.push({
+              recommenderId: rec.id,
+              recommenderName: rec.name,
+              recommenderPart: rec.part,
+              isTie: true,
+              isTieBrokenByRecommender: false,
+              votes: maxVotes,
+              songs: topSongs,
+            });
+          }
+        } else {
+          // 단독 1위
+          winningGroups.push({
+            recommenderId: rec.id,
+            recommenderName: rec.name,
+            recommenderPart: rec.part,
+            isTie: false,
+            isTieBrokenByRecommender: false,
+            votes: maxVotes,
+            songs: topSongs,
+          });
+        }
       }
     });
   }
@@ -238,6 +282,11 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      {group.isTieBrokenByRecommender && (
+                        <span className="text-[10px] px-2 py-0.5 bg-violet-600/30 border border-violet-500/50 text-violet-300 font-semibold rounded shrink-0">
+                          추천인 동점 우선
+                        </span>
+                      )}
                       <span className="text-xs px-2.5 py-1 bg-emerald-500 text-slate-950 font-bold rounded-lg shadow-sm">
                         {group.votes}표 득표
                       </span>
@@ -410,30 +459,30 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
                 <div className="space-y-2">
                   {rec.songs.map(song => {
                     const votes = voteMap.get(song.id);
-                    const isTop = is_revealed && votes !== undefined && votes === topVote && votes > 0;
-                    const topCount = is_revealed ? rec.songs.filter(s => (voteMap.get(s.id) || 0) === topVote).length : 0;
-                    const isTie = isTop && topCount > 1;
+                    const winningGroup = winningGroups.find(g => g.recommenderId === rec.id);
+                    const isWinner = is_revealed && !!winningGroup?.songs?.some(s => s.id === song.id) && !winningGroup.isTie;
+                    const isRecommenderTieWinner = is_revealed && !!winningGroup?.isTieBrokenByRecommender && !!winningGroup?.songs?.some(s => s.id === song.id);
+                    const isUnresolvedTie = is_revealed && !!winningGroup?.isTie && !!winningGroup?.songs?.some(s => s.id === song.id);
+                    const isRunnerUpTied = is_revealed && !isWinner && votes !== undefined && votes === topVote && votes > 0;
 
                     return (
                       <div
                         key={song.id}
                         className={`flex items-center justify-between p-2.5 rounded-lg border text-sm transition-all ${
-                          isTop
-                            ? isTie
+                          isWinner
+                            ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
+                            : isUnresolvedTie
                               ? 'bg-amber-950/30 border-amber-500/50 text-amber-200'
-                              : 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
-                            : 'bg-slate-900/40 border-slate-800 text-slate-300'
+                              : 'bg-slate-900/40 border-slate-800 text-slate-300'
                         }`}
                       >
                         <div className="flex-1 min-w-0 pr-2">
                           <div className="flex items-center gap-1.5 font-medium truncate">
-                            {isTop && (
-                              isTie ? (
-                                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                              ) : (
-                                <Trophy className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                              )
-                            )}
+                            {isWinner ? (
+                              <Trophy className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            ) : isUnresolvedTie ? (
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            ) : null}
                             <span className="truncate">{song.title}</span>
                           </div>
                           <p className="text-xs text-slate-400 truncate">{song.artist}</p>
@@ -443,14 +492,14 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
                           {is_revealed && votes !== undefined && (
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                                isTop
-                                  ? isTie
+                                isWinner
+                                  ? 'bg-emerald-500 text-slate-950'
+                                  : isUnresolvedTie
                                     ? 'bg-amber-500 text-slate-950'
-                                    : 'bg-emerald-500 text-slate-950'
-                                  : 'bg-slate-700 text-slate-300'
+                                    : 'bg-slate-700 text-slate-300'
                               }`}
                             >
-                              {votes}표 득표 {isTop && (isTie ? '★ 공동 1위' : '★ 1위')}
+                              {votes}표 득표 {isWinner ? (isRecommenderTieWinner ? '★ 최종 선정 (추천인 선택)' : '★ 최종 선정') : isUnresolvedTie ? '★ 공동 1위 (협의 필요)' : isRunnerUpTied ? '(동점 차순위)' : ''}
                             </span>
                           )}
                           {song.youtube_url && (
