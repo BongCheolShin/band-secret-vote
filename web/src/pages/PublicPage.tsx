@@ -170,7 +170,7 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
               />
             </div>
             <p className="text-center text-xs text-slate-400">
-              ⏳ 투표 시작 전입니다. 멤버들의 추천곡 접수가 완료되면 투표가 시작됩니다.
+              ⏳ 투표 시작 전입니다.
             </p>
           </div>
         ) : (
