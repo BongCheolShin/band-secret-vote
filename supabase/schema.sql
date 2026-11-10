@@ -107,12 +107,12 @@ BEGIN
     SELECT COUNT(*) INTO v_total_members FROM members WHERE election_id = p_election_id;
     SELECT COUNT(*) INTO v_completed_count FROM ballots WHERE election_id = p_election_id;
 
-    -- 3. 이중 조건 판정 (서버 시간 기준)
-    v_is_ended := timezone('utc'::text, now()) >= v_election.end_at;
+    -- 3. 이중 조건 판정 (마감 시간 경과 AND 전원 참여)
+    v_is_ended := now() >= v_election.end_at;
     v_is_revealed := v_is_ended AND (v_completed_count >= v_total_members AND v_total_members > 0);
 
     -- 4. 추천자 그룹 및 곡 목록 조회 (토큰 제외, 곡이 없으면 빈 배열)
-    SELECT jsonb_agg(
+    SELECT COALESCE(jsonb_agg(
         jsonb_build_object(
             'id', m.id,
             'name', m.name,
@@ -129,31 +129,34 @@ BEGIN
                 ) FROM songs s WHERE s.recommender_id = m.id
             ), '[]'::JSONB)
         ) ORDER BY m.name
-    ) INTO v_recommenders
+    ), '[]'::JSONB) INTO v_recommenders
     FROM members m
     WHERE m.election_id = p_election_id;
 
     -- 5. 결과 공개 조건 충족 시에만 득표 집계 및 6명 실명 선택 매트릭스 계산
     IF v_is_revealed THEN
-        -- 후보곡별 득표수
-        SELECT jsonb_agg(
+        -- 후보곡별 득표수 (서브쿼리로 중첩 집계 오류 방지)
+        SELECT COALESCE(jsonb_agg(
             jsonb_build_object(
-                'song_id', s.id,
-                'recommender_id', s.recommender_id,
-                'vote_count', COALESCE(COUNT(bc.id), 0)
+                'song_id', sub.id,
+                'recommender_id', sub.recommender_id,
+                'vote_count', sub.vote_count
             )
-        ) INTO v_results
-        FROM songs s
-        LEFT JOIN ballot_choices bc ON bc.song_id = s.id
-        WHERE s.election_id = p_election_id
-        GROUP BY s.id, s.recommender_id;
+        ), '[]'::JSONB) INTO v_results
+        FROM (
+            SELECT s.id, s.recommender_id, COALESCE(COUNT(bc.id), 0) AS vote_count
+            FROM songs s
+            LEFT JOIN ballot_choices bc ON bc.song_id = s.id
+            WHERE s.election_id = p_election_id
+            GROUP BY s.id, s.recommender_id
+        ) sub;
 
         -- 6명 실명별 최종 선택 매트릭스 (36건)
-        SELECT jsonb_agg(
+        SELECT COALESCE(jsonb_agg(
             jsonb_build_object(
                 'member_id', m.id,
                 'member_name', m.name,
-                'choices', (
+                'choices', COALESCE((
                     SELECT jsonb_agg(
                         jsonb_build_object(
                             'recommender_id', bc.recommender_id,
@@ -163,9 +166,9 @@ BEGIN
                     FROM ballots b
                     JOIN ballot_choices bc ON bc.ballot_id = b.id
                     WHERE b.member_id = m.id
-                )
+                ), '[]'::JSONB)
             ) ORDER BY m.name
-        ) INTO v_member_choices
+        ), '[]'::JSONB) INTO v_member_choices
         FROM members m
         WHERE m.election_id = p_election_id;
     END IF;

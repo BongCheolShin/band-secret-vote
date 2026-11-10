@@ -13,6 +13,7 @@ interface PublicPageProps {
 export default function PublicPage({ overrideData }: PublicPageProps) {
   const [data, setData] = useState<PublicElectionData>(overrideData || mockPublicData);
   const [loading, setLoading] = useState<boolean>(!overrideData && isSupabaseConfigured);
+  const [loadError, setLoadError] = useState<string>('');
 
   useEffect(() => {
     if (overrideData) {
@@ -32,12 +33,16 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
           const { data: rpcData, error } = await supabase.rpc('get_public_election_data', {
             p_election_id: electionList[0].id,
           });
-          if (!error && rpcData) {
+          if (error) {
+            console.error('공개 데이터 로딩 에러:', error);
+            setLoadError(error.message || '데이터를 불러오지 못했습니다.');
+          } else if (rpcData) {
             setData(rpcData as PublicElectionData);
           }
         }
       } catch (err) {
         console.error('공개 데이터 로딩 실패:', err);
+        setLoadError(err instanceof Error ? err.message : '오류가 발생했습니다.');
       } finally {
         setLoading(false);
       }
@@ -122,6 +127,13 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
           투표 기간: {formatDisplayDate(election.start_at)} ~ {formatDisplayDate(election.end_at)} (KST)
         </p>
       </header>
+
+      {loadError && (
+        <section className="bg-rose-950/40 border border-rose-500/50 rounded-xl p-3.5 text-xs text-rose-300 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+          <span>{loadError}</span>
+        </section>
+      )}
 
       {/* 상태 배너 */}
       <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 shadow-sm">
