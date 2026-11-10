@@ -210,7 +210,7 @@ export default function AdminPage({ onGoPublic }: AdminPageProps) {
                 type="password"
                 value={adminPass}
                 onChange={e => setAdminPass(e.target.value)}
-                placeholder="관리자 암호 (itdie2027)"
+                placeholder="관리자 암호 입력"
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
               />
               {authError && <p className="text-xs text-rose-400 mt-1">{authError}</p>}
