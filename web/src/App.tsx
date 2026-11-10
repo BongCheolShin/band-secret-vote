@@ -167,15 +167,17 @@ export default function App() {
         <p>이따위밴드 (IT' DIE) 공연곡 비밀투표 시스템</p>
       </footer>
 
-      {/* 로컬 개발/테스트 시뮬레이터 플로팅 바 */}
-      <DevSimulator
-        onSelectMember={handleSelectMember}
-        onSetScenario={handleSetScenario}
-        onReset={handleReset}
-        currentView={currentView}
-        onGoPublic={() => setCurrentView('public')}
-        onGoAdmin={() => setCurrentView('admin')}
-      />
+      {/* 로컬 개발 환경(DEV)에서만 테스트 시뮬레이터 플로팅 바 표시 */}
+      {import.meta.env.DEV && (
+        <DevSimulator
+          onSelectMember={handleSelectMember}
+          onSetScenario={handleSetScenario}
+          onReset={handleReset}
+          currentView={currentView}
+          onGoPublic={() => setCurrentView('public')}
+          onGoAdmin={() => setCurrentView('admin')}
+        />
+      )}
     </div>
   );
 }
