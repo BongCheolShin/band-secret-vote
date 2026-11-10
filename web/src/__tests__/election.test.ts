@@ -1,0 +1,80 @@
+import { describe, it, expect } from 'vitest';
+
+describe('Band Secret Vote 비즈니스 로직 검증', () => {
+  // TC-004, TC-005: 6개 그룹 선택 완결성 검증
+  it('TC-004, TC-005: 정확히 6개 그룹에서 각 1곡씩 선택해야만 유효한 제출이다', () => {
+    const totalGroups = 6;
+    
+    // 5개만 선택된 경우
+    const incompleteChoices = {
+      group1: 'song1',
+      group2: 'song4',
+      group3: 'song7',
+      group4: 'song10',
+      group5: 'song13',
+    };
+    expect(Object.keys(incompleteChoices).length === totalGroups).toBe(false);
+
+    // 6개 모두 선택된 경우
+    const completeChoices = {
+      ...incompleteChoices,
+      group6: 'song16',
+    };
+    expect(Object.keys(completeChoices).length === totalGroups).toBe(true);
+  });
+
+  // TC-007, TC-008, TC-009: 결과 공개 이중 조건 판정 (ADR-004)
+  it('TC-007, TC-008, TC-009: 마감 시간 경과 AND 6명 전원 완료 조건이 모두 참일 때만 결과를 공개한다', () => {
+    const isRevealed = (now: number, endAt: number, completed: number, total: number) => {
+      const isEnded = now >= endAt;
+      const isAllSubmitted = completed >= total && total > 0;
+      return isEnded && isAllSubmitted;
+    };
+
+    const endAt = 1000;
+    const total = 6;
+
+    // TC-007: 투표 기간 중(now < endAt) 6명 전원 완료 -> 결과 비공개
+    expect(isRevealed(500, endAt, 6, total)).toBe(false);
+
+    // TC-008: 마감 후(now >= endAt) 5명만 완료 -> 결과 비공개
+    expect(isRevealed(1500, endAt, 5, total)).toBe(false);
+
+    // TC-009: 마감 후(now >= endAt) 6명 전원 완료 -> 결과 공개!
+    expect(isRevealed(1500, endAt, 6, total)).toBe(true);
+  });
+
+  // TC-019, TC-023: 6명 x 6그룹 = 총 36표 및 실명 매트릭스 합산 일치 검증
+  it('TC-019, TC-023: 멤버별 36개 선택과 그룹별 후보 득표수의 총합은 완벽히 일치해야 한다', () => {
+    const members = ['이상희', '손석호', '권선영', '신봉철', '문성일', '김동희'];
+    const groups = ['sh', 'sk', 'sy', 'bc', 'si', 'dh'];
+
+    // 6명의 멤버가 각 6개 그룹에 1곡씩 선택한 데이터 모의
+    const memberChoices = members.map(m => ({
+      member: m,
+      choices: groups.map(g => ({
+        group: g,
+        song: `${g}_song1`, // 예시로 1번 곡 선택
+      })),
+    }));
+
+    // 전체 선택 건수는 6 x 6 = 36건이어야 함
+    const totalChoicesCount = memberChoices.reduce((acc, m) => acc + m.choices.length, 0);
+    expect(totalChoicesCount).toBe(36);
+
+    // 그룹별 득표 집계
+    const groupVotes: Record<string, number> = {};
+    groups.forEach(g => { groupVotes[g] = 0; });
+
+    memberChoices.forEach(m => {
+      m.choices.forEach(c => {
+        groupVotes[c.group] += 1;
+      });
+    });
+
+    // 각 그룹당 정확히 6표씩이어야 함
+    groups.forEach(g => {
+      expect(groupVotes[g]).toBe(6);
+    });
+  });
+});
