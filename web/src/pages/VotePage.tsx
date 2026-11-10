@@ -168,7 +168,7 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
     setIsPinSubmitting(false);
   };
 
-  const { election, member, recommenders = [] } = data;
+  const { election = {} as any, member = {} as any, recommenders = [] } = data || {};
   const totalGroups = recommenders.length;
   const selectedCount = Object.keys(selectedChoices).length;
   const isAllSelected = totalGroups > 0 && selectedCount === totalGroups;
@@ -235,6 +235,27 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400">
         <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-base">개인 투표함을 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
+  // 에러 발생 시 친절한 안내 화면 표시
+  if (errorMessage && !member?.id) {
+    return (
+      <div className="max-w-md mx-auto py-12 space-y-6 text-slate-100">
+        <div className="bg-rose-950/60 border border-rose-500/50 rounded-2xl p-6 sm:p-7 text-center space-y-4 shadow-xl">
+          <div className="w-12 h-12 bg-rose-600/20 text-rose-400 rounded-full flex items-center justify-center mx-auto border border-rose-500/40">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-bold text-white">투표함을 불러올 수 없습니다</h2>
+          <p className="text-sm text-rose-300 leading-relaxed">{errorMessage}</p>
+          <button
+            onClick={onGoPublic}
+            className="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-semibold transition-colors"
+          >
+            공개 페이지로 돌아가기
+          </button>
+        </div>
       </div>
     );
   }

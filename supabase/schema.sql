@@ -247,6 +247,29 @@ BEGIN
 
     SELECT * INTO v_election FROM elections WHERE id = v_member.election_id;
 
+    -- 전체 추천자 그룹 및 곡 정보 조회 (공개 데이터이므로 항상 포함하여 프론트 크래시 방지)
+    SELECT jsonb_agg(
+        jsonb_build_object(
+            'id', m.id,
+            'name', m.name,
+            'part', m.part,
+            'is_me', (m.id = v_member.id),
+            'songs', COALESCE((
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'id', s.id,
+                        'title', s.title,
+                        'artist', s.artist,
+                        'youtube_url', s.youtube_url,
+                        'order_no', s.order_no
+                    ) ORDER BY s.order_no
+                ) FROM songs s WHERE s.recommender_id = m.id
+            ), '[]'::JSONB)
+        ) ORDER BY m.name
+    ) INTO v_recommenders
+    FROM members m
+    WHERE m.election_id = v_election.id;
+
     -- 1. PIN 미설정 상태인 경우
     IF v_member.pin_hash IS NULL THEN
         RETURN jsonb_build_object(
@@ -257,6 +280,7 @@ BEGIN
                 'name', v_member.name,
                 'part', v_member.part
             ),
+            'recommenders', COALESCE(v_recommenders, '[]'::JSONB),
             'election', jsonb_build_object(
                 'id', v_election.id,
                 'title', v_election.title,
@@ -278,6 +302,7 @@ BEGIN
                 'name', v_member.name,
                 'part', v_member.part
             ),
+            'recommenders', COALESCE(v_recommenders, '[]'::JSONB),
             'election', jsonb_build_object(
                 'id', v_election.id,
                 'title', v_election.title,
