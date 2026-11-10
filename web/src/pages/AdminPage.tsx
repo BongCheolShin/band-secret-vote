@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { mockPublicData, recommendersList } from '../mockData';
-import { KeyRound, Copy, Check, ArrowLeft, Users, ShieldAlert, Calendar, Music, Save, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { KeyRound, Copy, Check, ArrowLeft, Users, ShieldAlert, Calendar, Music, Save, Clock, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import YoutubeIcon from '../components/YoutubeIcon';
 import { toLocalInputFormat } from '../lib/dateUtils';
 
@@ -11,6 +11,7 @@ interface MemberLink {
   part: string;
   vote_token: string;
   has_submitted?: boolean;
+  has_pin?: boolean;
   songs: Array<{
     id: string;
     title: string;
@@ -185,6 +186,34 @@ export default function AdminPage({ onGoPublic }: AdminPageProps) {
     setTimeout(() => setAllCopied(false), 2000);
   };
 
+  const handleResetPin = async (member: MemberLink) => {
+    const confirmed = window.confirm(
+      `[PIN 초기화 확인]\n\n${member.name} 님의 PIN 비밀번호를 초기화하시겠습니까?\n\n초기화 시 해당 멤버가 링크로 다시 접속할 때 새로운 4자리 PIN을 직접 설정하게 됩니다.`
+    );
+    if (!confirmed) return;
+
+    if (!isSupabaseConfigured || !supabase) {
+      setMembersData(prev => prev.map(m => m.id === member.id ? { ...m, has_pin: false } : m));
+      alert(`${member.name} 님의 PIN이 초기화되었습니다. (Mock 모드)`);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc('admin_reset_member_pin', {
+        p_member_id: member.id,
+      });
+
+      if (error) {
+        alert(`PIN 초기화 실패: ${error.message}`);
+      } else {
+        alert(`${member.name} 님의 PIN 비밀번호가 성공적으로 초기화되었습니다.\n팀원에게 링크로 다시 접속하여 새로운 PIN을 설정하도록 안내해 주세요.`);
+        setMembersData(prev => prev.map(m => m.id === member.id ? { ...m, has_pin: false } : m));
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : '오류가 발생했습니다.');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="space-y-6 pt-8">
@@ -311,33 +340,53 @@ export default function AdminPage({ onGoPublic }: AdminPageProps) {
                   className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 flex items-center justify-between gap-2"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-sm">{member.name}</span>
-                      <span className="text-xs text-slate-400">({member.part})</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-white text-sm sm:text-base">{member.name}</span>
+                      <span className="text-xs sm:text-sm text-slate-400">({member.part})</span>
                       {member.has_submitted ? (
-                        <span className="text-[10px] px-2 py-0.5 bg-emerald-950 border border-emerald-500/50 text-emerald-300 font-semibold rounded">
+                        <span className="text-[11px] px-2 py-0.5 bg-emerald-950 border border-emerald-500/50 text-emerald-300 font-semibold rounded">
                           투표 완료
                         </span>
                       ) : (
-                        <span className="text-[10px] px-2 py-0.5 bg-slate-700/60 text-slate-400 font-semibold rounded">
+                        <span className="text-[11px] px-2 py-0.5 bg-slate-700/60 text-slate-400 font-semibold rounded">
                           미제출
                         </span>
                       )}
+                      {member.has_pin ? (
+                        <span className="text-[11px] px-2 py-0.5 bg-violet-950/70 border border-violet-500/50 text-violet-300 font-semibold rounded flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> PIN 설정됨
+                        </span>
+                      ) : (
+                        <span className="text-[11px] px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 font-semibold rounded">
+                          PIN 미설정
+                        </span>
+                      )}
                     </div>
-                    <p className="text-[11px] text-slate-500 truncate mt-0.5 font-mono">{voteUrl}</p>
+                    <p className="text-xs text-slate-500 truncate mt-1 font-mono">{voteUrl}</p>
                   </div>
 
-                  <button
-                    onClick={() => copyToClipboard(member.vote_token)}
-                    className={`p-2 rounded-lg border text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
-                      isCopied
-                        ? 'bg-emerald-950 border-emerald-500 text-emerald-300'
-                        : 'bg-slate-700/60 hover:bg-slate-700 border-slate-600 text-slate-200'
-                    }`}
-                  >
-                    {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{isCopied ? '복사됨' : '복사'}</span>
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {member.has_pin && (
+                      <button
+                        onClick={() => handleResetPin(member)}
+                        className="py-1.5 px-2.5 rounded-lg border border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-semibold transition-colors"
+                        title="PIN을 분실한 멤버를 위해 PIN을 초기화합니다."
+                      >
+                        PIN 초기화
+                      </button>
+                    )}
+                    <button
+                      onClick={() => copyToClipboard(member.vote_token)}
+                      className={`p-2 rounded-lg border text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                        isCopied
+                          ? 'bg-emerald-950 border-emerald-500 text-emerald-300'
+                          : 'bg-slate-700/60 hover:bg-slate-700 border-slate-600 text-slate-200'
+                      }`}
+                    >
+                      {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{isCopied ? '복사됨' : '복사'}</span>
+                    </button>
+                  </div>
                 </div>
               );
             })}

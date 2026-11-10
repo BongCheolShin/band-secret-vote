@@ -50,16 +50,18 @@ export interface PublicElectionData {
 }
 
 export interface MemberBallotData {
+  has_pin?: boolean;
+  is_unlocked?: boolean;
   election: ElectionInfo;
   member: {
     id: string;
     name: string;
     part: string;
   };
-  my_choices: Array<{
+  my_choices?: Array<{
     recommender_id: string;
     song_id: string;
   }>;
-  has_submitted: boolean;
-  recommenders: RecommenderGroup[];
+  has_submitted?: boolean;
+  recommenders?: RecommenderGroup[];
 }

@@ -92,4 +92,44 @@ describe('Band Secret Vote 비즈니스 로직 검증', () => {
     expect(winningSong).toBeDefined();
     expect(winningSong?.id).toBe('song-2');
   });
+
+  // TC-026: 개인 PIN 잠금 및 관리자 초기화 검증 (ADR-011)
+  it('TC-026: 개인 PIN 잠금 및 관리자 초기화 비즈니스 로직 검증', () => {
+    interface MemberState {
+      id: string;
+      name: string;
+      pin_hash: string | null;
+      choices: string[];
+    }
+
+    const member: MemberState = {
+      id: 'm1',
+      name: '신봉철',
+      pin_hash: null,
+      choices: ['s1', 's4'],
+    };
+
+    // 1. PIN 미설정 상태: 잠김 및 choices 비공개
+    const getBallotView = (m: MemberState, inputPin: string | null) => {
+      if (!m.pin_hash) {
+        return { has_pin: false, is_unlocked: false, choices: [] };
+      }
+      if (inputPin === m.pin_hash) {
+        return { has_pin: true, is_unlocked: true, choices: m.choices };
+      }
+      return { has_pin: true, is_unlocked: false, choices: [] };
+    };
+
+    expect(getBallotView(member, null)).toEqual({ has_pin: false, is_unlocked: false, choices: [] });
+
+    // 2. 멤버가 PIN 등록
+    member.pin_hash = '1234';
+    expect(getBallotView(member, null)).toEqual({ has_pin: true, is_unlocked: false, choices: [] });
+    expect(getBallotView(member, '9999')).toEqual({ has_pin: true, is_unlocked: false, choices: [] });
+    expect(getBallotView(member, '1234')).toEqual({ has_pin: true, is_unlocked: true, choices: ['s1', 's4'] });
+
+    // 3. 관리자 PIN 초기화
+    member.pin_hash = null;
+    expect(getBallotView(member, null)).toEqual({ has_pin: false, is_unlocked: false, choices: [] });
+  });
 });
