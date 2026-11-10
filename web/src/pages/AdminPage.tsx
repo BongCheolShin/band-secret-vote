@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { mockPublicData, recommendersList } from '../mockData';
 import { KeyRound, Copy, Check, ArrowLeft, Users, ShieldAlert, Calendar, Music, Save, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import YoutubeIcon from '../components/YoutubeIcon';
+import { toLocalInputFormat } from '../lib/dateUtils';
 
 interface MemberLink {
   id: string;
@@ -77,8 +78,8 @@ export default function AdminPage({ onGoPublic }: AdminPageProps) {
           setElectionId(el.id);
           setTitle(el.title);
           setTheme(el.theme);
-          setStartAt(new Date(el.start_at).toISOString().slice(0, 16));
-          setEndAt(new Date(el.end_at).toISOString().slice(0, 16));
+          setStartAt(toLocalInputFormat(el.start_at));
+          setEndAt(toLocalInputFormat(el.end_at));
 
           if (adminData.members) {
             setMembersData(adminData.members as MemberLink[]);

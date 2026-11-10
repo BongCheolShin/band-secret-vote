@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { mockMemberData } from '../mockData';
 import { CheckCircle, AlertTriangle, ArrowLeft, Send, Clock } from 'lucide-react';
 import YoutubeIcon from '../components/YoutubeIcon';
+import { parseIsoDate, formatDisplayDate } from '../lib/dateUtils';
 
 interface VotePageProps {
   token: string;
@@ -76,22 +77,13 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
   const selectedCount = Object.keys(selectedChoices).length;
   const isAllSelected = totalGroups > 0 && selectedCount === totalGroups;
 
-  // 투표 가능 여부 판정 (서버 시간 기준)
-  const serverNow = new Date(election.server_now).getTime();
-  const startAt = new Date(election.start_at).getTime();
-  const endAt = new Date(election.end_at).getTime();
+  // 투표 가능 여부 판정 (서버 시간 기준, 타임존 안전 파싱)
+  const serverNow = parseIsoDate(election.server_now).getTime();
+  const startAt = parseIsoDate(election.start_at).getTime();
+  const endAt = parseIsoDate(election.end_at).getTime();
   const isBeforeStart = serverNow < startAt;
   const isAfterEnd = serverNow >= endAt;
   const isVotingPeriod = serverNow >= startAt && serverNow < endAt;
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    } catch {
-      return dateStr;
-    }
-  };
 
   const handleSelectSong = (recommenderId: string, songId: string) => {
     if (!isVotingPeriod) return;
@@ -188,7 +180,7 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
             ⏳ 투표 시작 전입니다.
           </div>
           <p className="text-xs text-slate-300">
-            투표 기간: {formatDate(election.start_at)} ~ {formatDate(election.end_at)} (KST)
+            투표 기간: {formatDisplayDate(election.start_at)} ~ {formatDisplayDate(election.end_at)} (KST)
           </p>
           <p className="text-[11px] text-slate-400 pt-0.5">
             투표 시작 전에는 18곡 후보를 미리 들어보실 수 있으며, 시작 일시부터 투표 제출이 가능합니다.

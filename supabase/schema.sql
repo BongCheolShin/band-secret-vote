@@ -178,7 +178,7 @@ BEGIN
             'theme', v_election.theme,
             'start_at', v_election.start_at,
             'end_at', v_election.end_at,
-            'server_now', timezone('utc'::text, now())
+            'server_now', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
         ),
         'total_members', v_total_members,
         'completed_count', v_completed_count,
@@ -257,7 +257,7 @@ BEGIN
             'theme', v_election.theme,
             'start_at', v_election.start_at,
             'end_at', v_election.end_at,
-            'server_now', timezone('utc'::text, now())
+            'server_now', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
         ),
         'member', jsonb_build_object(
             'id', v_member.id,

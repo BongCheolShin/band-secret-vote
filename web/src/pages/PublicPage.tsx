@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { mockPublicData } from '../mockData';
 import { CheckCircle, Clock, Trophy, Users, AlertTriangle } from 'lucide-react';
 import YoutubeIcon from '../components/YoutubeIcon';
+import { parseIsoDate, formatDisplayDate } from '../lib/dateUtils';
 
 interface PublicPageProps {
   overrideData?: PublicElectionData;
@@ -56,22 +57,13 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
 
   const { election, total_members, completed_count, is_ended, is_revealed, recommenders, results, member_choices } = data;
 
-  const serverNowTime = new Date(election.server_now).getTime();
-  const startTime = new Date(election.start_at).getTime();
+  const serverNowTime = parseIsoDate(election.server_now).getTime();
+  const startTime = parseIsoDate(election.start_at).getTime();
   const isBeforeStart = serverNowTime < startTime;
 
   // 투표 시작 전: 후보곡 추천 접수 완료 현황 계산
   const completedRecommenders = recommenders.filter(r => r.songs && r.songs.length === 3);
   const totalSubmittedSongs = recommenders.reduce((acc, r) => acc + (r.songs ? r.songs.length : 0), 0);
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    } catch {
-      return dateStr;
-    }
-  };
 
   // 곡별 득표수 매핑
   const voteMap = new Map<string, number>();
@@ -127,7 +119,7 @@ export default function PublicPage({ overrideData }: PublicPageProps) {
         </p>
         <p className="text-xs text-slate-500 flex items-center justify-center gap-1">
           <Clock className="w-3.5 h-3.5" />
-          투표 기간: {formatDate(election.start_at)} ~ {formatDate(election.end_at)} (KST)
+          투표 기간: {formatDisplayDate(election.start_at)} ~ {formatDisplayDate(election.end_at)} (KST)
         </p>
       </header>
 
