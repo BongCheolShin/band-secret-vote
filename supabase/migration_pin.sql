@@ -8,7 +8,14 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- 2. members 테이블에 pin_hash 컬럼 추가
 ALTER TABLE members ADD COLUMN IF NOT EXISTS pin_hash TEXT DEFAULT NULL;
 
--- 3. 최초 PIN 등록 RPC
+-- 3. 구버전 오버로딩 함수 삭제 (파라미터 충돌 방지)
+DROP FUNCTION IF EXISTS public.get_my_ballot(TEXT);
+DROP FUNCTION IF EXISTS public.get_my_ballot(TEXT, TEXT);
+
+DROP FUNCTION IF EXISTS public.submit_ballot(TEXT, JSONB);
+DROP FUNCTION IF EXISTS public.submit_ballot(TEXT, JSONB, TEXT);
+
+-- 4. 최초 PIN 등록 RPC
 CREATE OR REPLACE FUNCTION set_my_pin(
     p_token TEXT,
     p_pin TEXT
@@ -41,7 +48,7 @@ BEGIN
 END;
 $$;
 
--- 4. 투표지 조회 RPC (PIN 보호 적용)
+-- 5. 투표지 조회 RPC (PIN 보호 적용)
 CREATE OR REPLACE FUNCTION get_my_ballot(
     p_token TEXT,
     p_pin TEXT DEFAULT NULL
@@ -169,7 +176,7 @@ BEGIN
 END;
 $$;
 
--- 5. 투표 제출 RPC (PIN 검증 포함)
+-- 6. 투표 제출 RPC (PIN 검증 포함)
 CREATE OR REPLACE FUNCTION submit_ballot(
     p_token TEXT,
     p_choices JSONB,
@@ -237,7 +244,7 @@ BEGIN
 END;
 $$;
 
--- 6. 관리자 데이터 조회 RPC에 has_pin 추가
+-- 7. 관리자 데이터 조회 RPC (has_pin 컬럼 추가)
 CREATE OR REPLACE FUNCTION get_admin_data()
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -290,7 +297,7 @@ BEGIN
 END;
 $$;
 
--- 7. 관리자 PIN 초기화 RPC
+-- 8. 관리자 PIN 초기화 RPC (PIN 분실자 구제용)
 CREATE OR REPLACE FUNCTION admin_reset_member_pin(
     p_member_id UUID
 )

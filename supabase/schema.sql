@@ -78,6 +78,12 @@ CREATE POLICY "Anon public read songs" ON songs FOR SELECT USING (true);
 
 -- 4. SECURITY DEFINER RPC FUNCTIONS (보안 비즈니스 로직)
 
+-- 구버전 오버로딩 함수 삭제 (파라미터 충돌 방지)
+DROP FUNCTION IF EXISTS public.get_my_ballot(TEXT);
+DROP FUNCTION IF EXISTS public.get_my_ballot(TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.submit_ballot(TEXT, JSONB);
+DROP FUNCTION IF EXISTS public.submit_ballot(TEXT, JSONB, TEXT);
+
 -- A. 공개 페이지용 데이터 조회 RPC
 CREATE OR REPLACE FUNCTION get_public_election_data(p_election_id UUID)
 RETURNS JSONB
