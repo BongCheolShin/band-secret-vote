@@ -49,9 +49,9 @@ export const recommendersList = [
     part: '베이스 / 리더',
     token: 'z3v7q1k8m4p0w5x2j6b9n1c7d3f8g2h5',
     songs: [
-      { id: 's10', title: '해에게서 소년에게', artist: '넥스트', youtube_url: 'https://www.youtube.com/results?search_query=넥스트+해에게서+소년에게', order_no: 1 },
-      { id: 's11', title: '도시인', artist: '넥스트', youtube_url: 'https://www.youtube.com/results?search_query=넥스트+도시인', order_no: 2 },
-      { id: 's12', title: '인형의 기사 Part 2', artist: '넥스트', youtube_url: 'https://www.youtube.com/results?search_query=넥스트+인형의+기사+Part+2', order_no: 3 },
+      { id: 's10', title: '니가 진짜로 원하는게 뭐야, Pt.2', artist: '신해철', youtube_url: 'https://www.youtube.com/results?search_query=신해철+니가+진짜로+원하는게+뭐야+Pt.2', order_no: 1 },
+      { id: 's11', title: '단 하나의 약속', artist: '신해철', youtube_url: 'https://www.youtube.com/results?search_query=신해철+단+하나의+약속', order_no: 2 },
+      { id: 's12', title: '영원히', artist: '넥스트', youtube_url: 'https://www.youtube.com/results?search_query=넥스트+영원히', order_no: 3 },
     ]
   },
   {
