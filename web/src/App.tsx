@@ -147,7 +147,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between">
-      <main className="flex-1 w-full max-w-md mx-auto px-4 py-6">
+      <main className="flex-1 w-full max-w-xl mx-auto px-4 py-6 sm:px-6">
         {currentView === 'vote' && (
           <VotePage
             token={token}

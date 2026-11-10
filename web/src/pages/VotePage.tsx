@@ -144,67 +144,67 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 text-slate-100">
       {/* 상단 네비게이션 */}
       <button
         onClick={onGoPublic}
-        className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors py-1"
       >
         <ArrowLeft className="w-4 h-4" />
         전체 후보 및 일정 보러가기
       </button>
 
       {/* 헤더 */}
-      <header className="space-y-1">
+      <header className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs px-2.5 py-0.5 bg-violet-900/60 text-violet-300 font-semibold rounded-full border border-violet-700/50">
+          <span className="text-sm px-3 py-0.5 bg-violet-900/60 text-violet-300 font-semibold rounded-full border border-violet-700/50">
             {member.part}
           </span>
-          <span className="text-xs text-slate-400 font-medium">
-            선택 진행: <strong className="text-violet-400 font-bold">{selectedCount}</strong> / {totalGroups}
+          <span className="text-sm text-slate-300 font-medium">
+            선택 진행: <strong className="text-violet-400 font-bold text-base">{selectedCount}</strong> / {totalGroups}
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
           <span className="text-violet-400">{member.name}</span> 님의 투표지
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-sm text-slate-300">
           각 추천자 그룹에서 마음에 드는 곡을 <strong className="text-violet-300 font-bold">1곡씩(총 {totalGroups}곡)</strong> 선택해 주세요.
         </p>
       </header>
 
       {/* 상태 배너 */}
       {isBeforeStart ? (
-        <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center space-y-1 shadow-sm">
-          <div className="inline-flex items-center gap-2 text-sky-400 font-bold text-base">
+        <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center space-y-1.5 shadow-sm">
+          <div className="inline-flex items-center gap-2 text-sky-400 font-bold text-lg">
             <Clock className="w-5 h-5" />
             ⏳ 투표 시작 전입니다.
           </div>
-          <p className="text-xs text-slate-300">
+          <p className="text-sm text-slate-300">
             투표 기간: {formatDisplayDate(election.start_at)} ~ {formatDisplayDate(election.end_at)} (KST)
           </p>
-          <p className="text-[11px] text-slate-400 pt-0.5">
+          <p className="text-xs text-slate-400 pt-0.5">
             투표 시작 전에는 18곡 후보를 미리 들어보실 수 있으며, 시작 일시부터 투표 제출이 가능합니다.
           </p>
         </section>
       ) : isAfterEnd ? (
-        <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center space-y-1 shadow-sm">
-          <div className="inline-flex items-center gap-2 text-amber-400 font-bold text-base">
+        <section className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center space-y-1.5 shadow-sm">
+          <div className="inline-flex items-center gap-2 text-amber-400 font-bold text-lg">
             <Clock className="w-5 h-5" />
             ⏰ 투표가 마감되었습니다.
           </div>
-          <p className="text-xs text-slate-300">
+          <p className="text-sm text-slate-300">
             투표 결과는 마감 및 전원 참여 완료 후 일반 공개 페이지에서 확인하실 수 있습니다.
           </p>
         </section>
       ) : null}
 
       {/* 필수 고지 안내문 (FR-017) */}
-      <section className="bg-amber-950/30 border border-amber-600/40 rounded-xl p-3.5 space-y-1.5 text-xs">
-        <div className="flex items-center gap-1.5 text-amber-400 font-bold">
-          <AlertTriangle className="w-4 h-4 shrink-0" />
+      <section className="bg-amber-950/30 border border-amber-600/40 rounded-xl p-4 space-y-2 text-sm">
+        <div className="flex items-center gap-2 text-amber-400 font-bold text-base">
+          <AlertTriangle className="w-5 h-5 shrink-0" />
           투표 진행 및 결과 공개 안내 (필독)
         </div>
-        <p className="text-slate-300 leading-relaxed">
+        <p className="text-slate-300 leading-relaxed text-sm">
           • 투표 기간 중에는 <strong className="text-amber-200 font-bold">본인의 선택만 확인 가능</strong>하며 타인의 선택이나 중간 득표는 비공개입니다.<br />
           • 투표 마감 및 <strong className="text-amber-200 font-bold">{totalGroups}명 전원 참여 완료 시</strong>, <strong className="text-amber-200 font-bold">일반 공개 페이지에 멤버 전원의 실명과 최종 선택한 {totalGroups}곡 내역이 모두 투명하게 공개</strong>됩니다.<br />
           • 마감 전까지는 본 링크로 재접속하여 <strong className="text-amber-200 font-bold">언제든 무제한으로 수정</strong>할 수 있습니다.
@@ -213,17 +213,17 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
 
       {/* 완료 및 에러 알림 */}
       {submitSuccess && (
-        <div className="bg-emerald-950/40 border border-emerald-500/50 rounded-xl p-3.5 flex items-center gap-2.5 text-emerald-300 text-sm">
-          <CheckCircle className="w-5 h-5 shrink-0 text-emerald-400" />
+        <div className="bg-emerald-950/40 border border-emerald-500/50 rounded-xl p-4 flex items-center gap-3 text-emerald-300 text-sm">
+          <CheckCircle className="w-6 h-6 shrink-0 text-emerald-400" />
           <div>
-            <p className="font-bold">투표가 정상적으로 저장되었습니다!</p>
+            <p className="font-bold text-base">투표가 정상적으로 저장되었습니다!</p>
             <p className="text-xs text-emerald-400/80">마감 전까지 언제든 본 페이지에서 수정하실 수 있습니다.</p>
           </div>
         </div>
       )}
 
       {errorMessage && (
-        <div className="bg-rose-950/40 border border-rose-500/50 rounded-xl p-3.5 text-rose-300 text-xs">
+        <div className="bg-rose-950/40 border border-rose-500/50 rounded-xl p-4 text-rose-300 text-sm">
           {errorMessage}
         </div>
       )}
@@ -242,27 +242,27 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
                   : 'border-violet-500/40 shadow-sm'
               }`}
             >
-              <div className="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <div className="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white text-sm">{rec.name}</span>
-                  <span className="text-xs text-slate-400">({rec.part})</span>
+                  <span className="font-bold text-white text-lg">{rec.name}</span>
+                  <span className="text-base text-slate-300">({rec.part})</span>
                   {rec.is_me && (
-                    <span className="text-[10px] px-1.5 py-0.2 bg-violet-600/40 text-violet-300 font-semibold rounded">
+                    <span className="text-xs px-2.5 py-0.5 bg-violet-600/40 text-violet-300 font-semibold rounded">
                       본인 추천 그룹
                     </span>
                   )}
                 </div>
                 {currentSelectedSongId ? (
-                  <span className="text-xs text-emerald-400 flex items-center gap-1 font-medium">
-                    <CheckCircle className="w-3.5 h-3.5" /> 선택 완료
+                  <span className="text-sm sm:text-base text-emerald-400 flex items-center gap-1 font-semibold">
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> 선택 완료
                   </span>
                 ) : (
-                  <span className="text-xs text-amber-400 font-medium">1곡 선택 필요</span>
+                  <span className="text-sm sm:text-base text-amber-400 font-semibold">1곡 선택 필요</span>
                 )}
               </div>
 
               {/* 3곡 라디오 버튼 */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {rec.songs.map(song => {
                   const isChecked = currentSelectedSongId === song.id;
 
@@ -270,23 +270,23 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
                     <label
                       key={song.id}
                       onClick={() => handleSelectSong(rec.id, song.id)}
-                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer select-none transition-all ${
+                      className={`flex items-center justify-between p-3.5 sm:p-4 rounded-xl border cursor-pointer select-none transition-all ${
                         isChecked
                           ? 'bg-violet-600/20 border-violet-500 text-white font-medium shadow-inner'
                           : 'bg-slate-900/40 border-slate-800 text-slate-300 hover:bg-slate-700/30'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                      <div className="flex items-center gap-3.5 min-w-0 pr-2">
                         <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                             isChecked ? 'border-violet-400 bg-violet-600' : 'border-slate-600'
                           }`}
                         >
-                          {isChecked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          {isChecked && <div className="w-2 h-2 rounded-full bg-white" />}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm truncate">{song.title}</p>
-                          <p className="text-xs text-slate-400 truncate">{song.artist}</p>
+                          <p className="text-base sm:text-lg font-bold text-white truncate">{song.title}</p>
+                          <p className="text-sm sm:text-base text-slate-300 truncate">{song.artist}</p>
                         </div>
                       </div>
 
@@ -296,10 +296,10 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
-                          className="p-1.5 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all shrink-0"
+                          className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all shrink-0"
                           title="YouTube에서 듣기"
                         >
-                          <YoutubeIcon className="w-5 h-5" />
+                          <YoutubeIcon className="w-6 h-6" />
                         </a>
                       )}
                     </label>
@@ -316,7 +316,7 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
         <button
           onClick={handleSubmit}
           disabled={!isAllSelected || isSubmitting || !isVotingPeriod}
-          className={`w-full py-3.5 px-4 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition-all ${
+          className={`w-full py-4 px-4 rounded-xl font-bold text-base shadow-lg flex items-center justify-center gap-2 transition-all ${
             isAllSelected && isVotingPeriod
               ? 'bg-violet-600 hover:bg-violet-500 text-white active:scale-[0.99]'
               : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
@@ -332,8 +332,8 @@ export default function VotePage({ token, onGoPublic, overrideMemberData }: Vote
             '현재는 투표 기간이 아닙니다'
           ) : isAllSelected ? (
             <>
-              <Send className="w-4 h-4" />
-              {data.has_submitted ? '수정하여 다시 제출하기' : '투표 최종 제출하기 (6곡 선택)'}
+              <Send className="w-5 h-5" />
+              {data.has_submitted ? '수정하여 다시 제출하기' : `투표 최종 제출하기 (${totalGroups}곡 선택)`}
             </>
           ) : (
             `모든 그룹을 선택해주세요 (${selectedCount} / ${totalGroups})`
